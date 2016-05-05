@@ -2,8 +2,12 @@
 from collections import defaultdict
 
 from datetime import datetime
-from mpltools import style
-style.use('ggplot')
+try:
+    from mpltools import style
+    style.use('ggplot')
+except:
+    pass
+
 import matplotlib.pyplot as plt
 
 from .money import Money
