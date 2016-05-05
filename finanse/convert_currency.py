@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
-import urllib.request
+import requests
 
 
 ratios = defaultdict(dict)
@@ -35,7 +35,7 @@ def _ratio_is_cached(from_currency, to_currency):
 
 def _download_ratio(from_currency, to_currency):
     url = _make_url(from_currency, to_currency)
-    result_html = urllib.request.urlopen(url).read()
+    result_html = requests.get(url).text
     ratio = _parse_result_html(result_html)
     ratios[from_currency][to_currency] = ratio
 
