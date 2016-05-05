@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .money import Money
 from .money import CategorizedMoney
 
