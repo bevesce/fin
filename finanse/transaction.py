@@ -19,10 +19,15 @@ class Transaction:
     @staticmethod
     def _parse(text):
         split = text.lower().split(' ')
-        date = datetime.strptime(
-            split[0] + ' ' + split[1],
-            DATE_FORMAT
-        )
+        try:
+            date = datetime.strptime(
+                split[0] + ' ' + split[1],
+                DATE_FORMAT
+            )
+        except:
+            print('error:', text)
+            import sys
+            sys.exit(0)
         try:
             amount = Money(split[-1])
             tags = split[2:-1]

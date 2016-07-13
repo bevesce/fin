@@ -48,7 +48,8 @@ def plot_monthly_graph(
         transactions, title,
         color, avg_color,
         plus_marker_color=None, minus_marker_color=None,
-        sub_transactions=None
+        sub_transactions=None,
+        currency='€'
     ):
 
     filename = 'finanse_' + title + '.png'
@@ -65,13 +66,13 @@ def plot_monthly_graph(
 
     fig, ax = plt.subplots(figsize=(12, 4))
     x = [i for i in range(0, len(months))]
-    sums = [sums[m].amount('zł') for m in months]
-    avgs = [avgs[m].amount('zł') for m in months]
+    sums = [sums[m].amount(currency) for m in months]
+    avgs = [avgs[m].amount(currency) for m in months]
     ax.set_xticks(x)
     ax.set_xticklabels(months, rotation=90)
     plt.plot(x, sums, color=color, linestyle='-')
     plt.plot(x, avgs, color=avg_color, linestyle='-')
-    plt.ylabel('kwota [zł]')
+    plt.ylabel('kwota [{}]'.format(currency))
     plt.xlabel('data')
 
     xs_green = []
