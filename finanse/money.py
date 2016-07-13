@@ -2,7 +2,7 @@
 import re
 from collections import defaultdict
 
-from .convert_currency import convert_currency
+from .currency import convert as convert_currency
 KNOWN_CURRENCIES = ('€', 'zł', '$')
 
 
