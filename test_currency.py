@@ -14,6 +14,9 @@ class ConvertTest(unittest.TestCase):
     def test_convert(self):
         self.assertEqual(2 * 4.2732, currency.convert(2, 'EUR', 'PLN', date(2015, 1, 1)))
 
+    def test_redundant_convert(self):
+        self.assertEqual(2, currency.convert(2, 'EUR', 'EUR', date(2015, 1, 1)))
+
     def test_convert_using_aliases(self):
         self.assertEqual(4.2732, currency.convert(1, '€', 'zł', date(2015, 1, 1)))
 
