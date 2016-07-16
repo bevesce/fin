@@ -11,14 +11,14 @@ class Money:
 
     def __init__(self, amounts=None):
         """
-        amounts: defaultdict { currency : amount of this currency }
+        amounts: {currency : amount of this currency}
             amount of given currency should be in hundredth parts
             for example in cents for euro or in groszes for złoty
         """
         if isinstance(amounts, str):
             self._amounts = self._parse(amounts)
         else:
-            self._amounts = amounts or self._create_amounts()
+            self._amounts = defaultdict(lambda: 0, amounts) or self._create_amounts()
 
     @classmethod
     def _parse(cls, text):
@@ -36,12 +36,10 @@ class Money:
                 cents = int(cents or 0)
                 amount = euros + cents
                 currency = currency.strip()
-                if currency not in KNOWN_CURRENCIES:
-                    print('unknown currency!:', currency, 'in:', text)
                 amounts[currency] += amount
             return amounts
         except:
-            raise Exception("can't parse money")
+            raise Exception("can't parse money: {}".format(text))
 
     @staticmethod
     def _create_amounts():
@@ -76,29 +74,6 @@ class Money:
         return Money(amounts)
 
     def __str__(self):
-        return self()
-
-    def __repr__(self):
-        return self()
-
-    def __eq__(self, other):
-        return self() == other()
-
-    def __call__(self, currency=None):
-        """Return text represenation of money"""
-        if not self._amounts:
-            return '0'
-        if currency:
-            return self._formated_amount_converted_to_one_currency(currency)
-        return self._formated_amounts_in_many_currencies()
-
-    def _formated_amount_converted_to_one_currency(self, currency):
-        return self._format(
-            self._calculate_total_amount_converted_to_one_currency(currency),
-            currency
-        )
-
-    def _formated_amounts_in_many_currencies(self):
         return ' + '.join(
             self._formated_amount_of_given_currency(currency)
             for currency in self.currencies()
@@ -110,6 +85,18 @@ class Money:
             currency
         )
 
+    def __repr__(self):
+        return str(self)
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def convert(self, to_currency, date=None):
+        total_amount = 0
+        for from_currency, amount in self._amounts.items():
+            total_amount += Money.convert_currency(amount, from_currency, to_currency, date)
+        return Money({to_currency: int(total_amount)})
+
     @staticmethod
     def _format(amount, currency):
         MONEY_FORMAT = '{0},{1:02d} {2}'
@@ -119,22 +106,11 @@ class Money:
             currency
         )
 
-    def _calculate_total_amount_converted_to_one_currency(self, currency):
-        amount = 0
-        for from_currency, amount_in_currency in self._amounts.items():
-            amount += int(Money.convert_currency(
-                amount_in_currency, from_currency, currency
-            ))
-        return amount
-
-    def amount(self, currency):
-        return self._calculate_total_amount_converted_to_one_currency(currency) / 100
-
     def currencies(self):
         return sorted(self._amounts.keys())
 
 
-class CategorizedMoney:
+class GroupedMoney:
     def __init__(self, categories):
         if isinstance(categories, str):
             categories = self._parse(categories)
@@ -155,25 +131,25 @@ class CategorizedMoney:
 
     def __add__(self, other):
         result = defaultdict(Money)
-        for category, amount in self.items():
-            result[category] += amount
-        for category, amount in other.items():
-            result[category] += amount
-        return CategorizedMoney(dict(result))
+        for group, amount in self.items():
+            result[group] += amount
+        for group, amount in other.items():
+            result[group] += amount
+        return GroupedMoney(dict(result))
 
     def __sub__(self, other):
         result = defaultdict(Money)
-        for category, amount in self.items():
-            result[category] += amount
-        for category, amount in other.items():
-            result[category] -= amount
-        return CategorizedMoney(dict(result))
+        for group, amount in self.items():
+            result[group] += amount
+        for group, amount in other.items():
+            result[group] -= amount
+        return GroupedMoney(dict(result))
 
     def __eq__(self, other):
         if set(self.categories) != set(other.categories):
             return False
-        for category in self.categories:
-            if self[category] != other[category]:
+        for group in self.categories:
+            if self[group] != other[group]:
                 return False
         return True
 
@@ -182,13 +158,13 @@ class CategorizedMoney:
             '- {} = {}'.format(k, v) for k, v in self.items()
         )
 
-    def __getitem__(self, category):
-        return self._categories.get(category, Money())
+    def __getitem__(self, group):
+        return self._categories.get(group, Money())
 
     def __len__(self):
         return len(self._categories)
 
-    def categories(self):
+    def groups(self):
         return sorted(self._categories.keys())
 
     def amounts(self):
@@ -198,5 +174,5 @@ class CategorizedMoney:
         return sum(self.amounts(), Money())
 
     def items(self):
-        for category in self.categories():
-            yield category, self[category]
+        for group in self.categories():
+            yield group, self[group]

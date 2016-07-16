@@ -3,6 +3,10 @@ from datetime import datetime
 from collections import defaultdict
 
 from finanse.money import Money
+from finanse import currency
+
+
+currency.cache = {'2016-01-01': {'PLN': {'EUR': 0.25}, 'USD': {'EUR': 0.5}}}
 
 
 class MoneyParsingTest(unittest.TestCase):
@@ -13,41 +17,41 @@ class MoneyParsingTest(unittest.TestCase):
         amounts = defaultdict(lambda: 0)
         amounts['zł'] = 10 * 100
         zloty10 = Money(amounts)
-        self.assertEqual(zloty10(), '10,00 zł')
+        self.assertEqual(str(zloty10), '10,00 zł')
 
     def test_multicurrency_creation(self):
         zloty10euro20 = Money('10 zł + 20,00€')
-        self.assertEqual(zloty10euro20(), '10,00 zł + 20,00 €')
+        self.assertEqual(str(zloty10euro20), '10,00 zł + 20,00 €')
 
     def test_parsing(self):
         zloty10 = Money('10 zł')
-        self.assertEqual(zloty10('zł'), '10,00 zł')
+        self.assertEqual(str(zloty10), '10,00 zł')
 
     def test_parsing_with_fractions(self):
         zloty10 = Money('10,13 zł')
-        self.assertEqual(zloty10('zł'), '10,13 zł')
+        self.assertEqual(str(zloty10), '10,13 zł')
 
     def test_parsing_with_single_digit_fractions(self):
         zloty10 = Money('10,3 zł')
-        self.assertEqual(zloty10('zł'), '10,30 zł')
+        self.assertEqual(str(zloty10), '10,30 zł')
 
     def test_parsing_with_fractions_with_dot(self):
         zloty10 = Money('10.13 zł')
-        self.assertEqual(zloty10('zł'), '10,13 zł')
+        self.assertEqual(str(zloty10), '10,13 zł')
 
     def test_parsing_without_space(self):
         zloty10 = Money('10zł')
-        self.assertEqual(zloty10('zł'), '10,00 zł')
+        self.assertEqual(str(zloty10), '10,00 zł')
 
     def test_parsing_without_space_with_fraction(self):
         zloty10 = Money('10,13zł')
-        self.assertEqual(zloty10('zł'), '10,13 zł')
+        self.assertEqual(str(zloty10), '10,13 zł')
 
     def test_addition(self):
         zloty10 = Money('10zł')
         zloty20 = Money('20zł')
         self.assertEqual(
-            (zloty10 + zloty20)('zł'),
+            str(zloty10 + zloty20),
             '30,00 zł'
         )
 
@@ -60,14 +64,14 @@ class MoneyOperationsTest(unittest.TestCase):
         zloty10 = Money('10 zł')
         zloty20 = Money('20 zł')
         self.assertEqual(
-            (zloty10 - zloty20)('zł'),
+            str(zloty10 - zloty20),
             '-10,00 zł'
         )
 
     def test_division(self):
         zloty10 = Money('10zł')
         self.assertEqual(
-            (zloty10 / 2)('zł'),
+            str(zloty10 / 2),
             '5,00 zł'
         )
 
@@ -75,13 +79,25 @@ class MoneyOperationsTest(unittest.TestCase):
         zloty10 = Money('10zł')
         euro10 = Money('10€')
         self.assertEqual(
-            (zloty10 + euro10)(),
+            str(zloty10 + euro10),
             '10,00 zł + 10,00 €'
         )
-        self.assertTrue(
-            (zloty10 + euro10)('zł') == '30,00 zł'
+
+
+class MoneyConversionTest(unittest.TestCase):
+    def test_convert_money(self):
+        zloty40_in_euro = Money('40zł').convert('€', datetime(2016, 1, 1))
+        self.assertEqual(
+            zloty40_in_euro,
+            '10,00 €'
         )
 
+    def test_convert_money_from_multiple_currencies(self):
+        zloty40_in_euro = Money('40zł + 20$').convert('€', datetime(2016, 1, 1))
+        self.assertEqual(
+            zloty40_in_euro,
+            '20,00 €'
+        )
 
 if __name__ == '__main__':
     unittest.main()
