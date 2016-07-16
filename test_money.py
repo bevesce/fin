@@ -4,6 +4,7 @@ from collections import defaultdict
 
 from finanse.money import Money
 from finanse import currency
+from finanse.exceptions import MoneyParseError
 
 
 currency.cache = {'2016-01-01': {'PLN': {'EUR': 0.25}, 'USD': {'EUR': 0.5}}}
@@ -54,6 +55,21 @@ class MoneyParsingTest(unittest.TestCase):
             str(zloty10 + zloty20),
             '30,00 zł'
         )
+
+    def test_parsing_invalid_base_unit(self):
+        with self.assertRaises(MoneyParseError) as cm:
+            Money('xx zł')
+        self.assertEqual(str(cm.exception), "can't parse 'xx zł' as money")
+
+    def test_parsing_invalid_subunit(self):
+        with self.assertRaises(MoneyParseError) as cm:
+            print(Money('0,x0zł'))
+        self.assertEqual(str(cm.exception), "can't parse '0,x0zł' as money")
+
+    def test_parsing_missing_currency(self):
+        with self.assertRaises(MoneyParseError) as cm:
+            print(Money('0,0'))
+        self.assertEqual(str(cm.exception), "can't parse '0,0' as money")
 
 
 class MoneyOperationsTest(unittest.TestCase):

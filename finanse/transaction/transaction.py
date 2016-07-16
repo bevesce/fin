@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from .money import Money
-from .money import CategorizedMoney
+from .money import GroupedMoney
 from datetime import datetime
 from collections import defaultdict
 
@@ -140,9 +140,116 @@ class GroupedTransactions:
         })
 
     def sum(self):
-        return CategorizedMoney({
+        return GroupedMoney({
             k: v.sum() for k, v in self._groups.items()
         })
 
     def groups(self):
         return self._groups.keys()
+
+
+def parse_tags(text):
+    class Tokenizer:
+        def __init__(self, text):
+            self._text = text
+            self._tokens = ['']
+            self._parenthesis_counter = 0
+
+        def run(self):
+            for c in self._text:
+                if c == ' ' or c == '\t':
+                    self._tokenize_whitespace(c)
+                elif c == '(':
+                    self._tokenize_left_parenthesis(c)
+                elif c == ')':
+                    self._tokenize_right_parenthesis(c)
+                else:
+                    self._tokenize_character(c)
+            return [t for t in self._tokens if t]
+
+        def add_token(self, token):
+            self._tokens.append(token)
+
+        def is_top_level(self):
+            return self._parenthesis_counter == 0
+
+        def _tokenize_whitespace(self, c):
+            if self.is_top_level():
+                self.add_token('')
+            else:
+                self._tokenize_character(c)
+
+        def _tokenize_left_parenthesis(self, c):
+            if self.is_top_level():
+                self.add_token('(')
+                self.add_token('')
+            else:
+                self._tokenize_character(c)
+            self._parenthesis_counter += 1
+
+        def _tokenize_right_parenthesis(self, c):
+            self._parenthesis_counter -= 1
+            if self.is_top_level():
+                self.add_token(')')
+                self.add_token('')
+            else:
+                self._tokenize_character(c)
+
+        def _tokenize_character(self, c):
+            self._tokens[-1] += c
+
+
+    def parse(text):
+        tokens = Tokenizer(text).run()
+        tags = {}
+        def pick():
+            return tokens[0]
+
+        def pop():
+            return tokens.pop(0)
+
+        def is_eof():
+            return not tokens
+
+        def is_word():
+            return pick() != '(' and pick() != ')'
+
+        def parse_tags():
+            if not is_eof():
+                parse_tag()
+                parse_tags()
+
+        def parse_tag():
+            tag = pop_word()
+            parameter = None
+            if not is_eof() and pick() == '(':
+                parameter = pop_parameter()
+            tags[tag] = parameter
+
+        def pop_word():
+            if is_word():
+                return pop()
+            raise Exception(text)
+
+        def pop_parameter():
+            pop()
+            word = pop_word()
+            pop_close()
+            return word
+
+        def pop_close():
+            if pick() == ')':
+                return pop()
+            raise Exception(text)
+
+        parse_tags()
+        return tags
+
+
+
+    return parse(text)
+    # return parse(Tokenizer(text).run())
+    # tokens = tokenize(text)
+    # if text:
+        # return {t: None for t in text.split(' ')}
+    # return {}

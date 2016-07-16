@@ -3,7 +3,7 @@ import re
 from collections import defaultdict
 
 from .currency import convert as convert_currency
-KNOWN_CURRENCIES = ('€', 'zł', '$')
+from .money_parser import parse, create_amounts
 
 
 class Money:
@@ -16,37 +16,12 @@ class Money:
             for example in cents for euro or in groszes for złoty
         """
         if isinstance(amounts, str):
-            self._amounts = self._parse(amounts)
+            self._amounts = parse(amounts)
         else:
-            self._amounts = defaultdict(lambda: 0, amounts) or self._create_amounts()
-
-    @classmethod
-    def _parse(cls, text):
-        try:
-            amounts = cls._create_amounts()
-            for amount_text in text.split('+'):
-                amount_text = amount_text.strip()
-                # numbers then optionally dot or comma (to separate) and then one or two numbers
-                groups = re.match(r'(?:([\d]+)(?:[\.,](\d{1,2}))?)(\D+)', amount_text).groups()
-                # euros and cents are examples - main currency and it's hundredth part
-                euros, cents, currency = groups
-                euros = int(euros) * 100
-                if cents and len(cents) == 1:
-                    cents += '0'
-                cents = int(cents or 0)
-                amount = euros + cents
-                currency = currency.strip()
-                amounts[currency] += amount
-            return amounts
-        except:
-            raise Exception("can't parse money: {}".format(text))
-
-    @staticmethod
-    def _create_amounts():
-        return defaultdict(lambda: 0)
+            self._amounts = create_amounts(amounts)
 
     def __add__(self, other):
-        amounts = self._create_amounts()
+        amounts = create_amounts()
         for currency in self._amounts:
             amounts[currency] = amounts[currency] + self._amounts[currency]
         for currency in other._amounts:
@@ -54,7 +29,7 @@ class Money:
         return Money(amounts)
 
     def __sub__(self, other):
-        amounts = self._create_amounts()
+        amounts = create_amounts()
         for currency in self._amounts:
             amounts[currency] = amounts[currency] + self._amounts[currency]
         for currency in other._amounts:
@@ -62,13 +37,13 @@ class Money:
         return Money(amounts)
 
     def __truediv__(self, divider):
-        amounts = self._create_amounts()
+        amounts = create_amounts()
         for currency in self._amounts:
             amounts[currency] = int(self._amounts[currency] / divider)
         return Money(amounts)
 
     def __mul__(self, multiplayer):
-        amounts = self._create_amounts()
+        amounts = create_amounts()
         for currency in self._amounts:
             amounts[currency] = int(self._amounts[currency] * multiplayer)
         return Money(amounts)
@@ -81,8 +56,7 @@ class Money:
 
     def _formated_amount_of_given_currency(self, currency):
         return self._format(
-            self._amounts[currency],
-            currency
+            self._amounts[currency], currency
         )
 
     def __repr__(self):
@@ -99,8 +73,7 @@ class Money:
 
     @staticmethod
     def _format(amount, currency):
-        MONEY_FORMAT = '{0},{1:02d} {2}'
-        return MONEY_FORMAT.format(
+        return '{0},{1:02d} {2}'.format(
             amount // 100,
             amount % 100,
             currency
