@@ -4,7 +4,7 @@ from collections import defaultdict
 from ..exceptions import MoneyParseError
 
 
-def parse(text):
+def parse_money(text):
     def parse_base_unit(base_unit):
         return int(base_unit) * 100
 
@@ -18,6 +18,11 @@ def parse(text):
     def parse_currency(currency):
         return currency.strip()
 
+    def parse_sign(sign):
+        if sign:
+            return -1
+        return 1
+
     def raise_money_parse(name):
         raise MoneyParseError(
             "can't parse '{}' as {}".format(text, name)
@@ -28,12 +33,12 @@ def parse(text):
         amount_text = amount_text.strip()
         # digits -> optionally dot or comma (to separate) ->
         # optionally one or two digits -> currency name (not digits)
-        match = re.match(r'^(?:([\d]+)(?:[\.,](\d{1,2}))?)(\D+)$', amount_text)
+        match = re.match(r'^(-{0,1})(?:([\d]+)(?:[\.,](\d{1,2}))?)(\D+)$', amount_text)
         if not match:
             raise_money_parse('money')
         # base_unit and subunit - main currency and it's hundredth part
-        base_unit, subunit, currency = match.groups()
-        amounts[parse_currency(currency)] += parse_base_unit(base_unit) + parse_subunit(subunit)
+        sign, base_unit, subunit, currency = match.groups()
+        amounts[parse_currency(currency)] += parse_sign(sign) * parse_base_unit(base_unit) + parse_subunit(subunit)
     return amounts
 
 

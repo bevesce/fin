@@ -4,3 +4,7 @@ class ParseError(Exception):
 
 class MoneyParseError(ParseError):
     pass
+
+
+class TransactionParseError(ParseError):
+    pass

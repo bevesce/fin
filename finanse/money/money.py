@@ -3,7 +3,7 @@ import re
 from collections import defaultdict
 
 from .currency import convert as convert_currency
-from .money_parser import parse, create_amounts
+from .money_parser import parse_money, create_amounts
 
 
 class Money:
@@ -16,7 +16,7 @@ class Money:
             for example in cents for euro or in groszes for złoty
         """
         if isinstance(amounts, str):
-            self._amounts = parse(amounts)
+            self._amounts = parse_money(amounts)
         else:
             self._amounts = create_amounts(amounts)
 
@@ -81,71 +81,3 @@ class Money:
 
     def currencies(self):
         return sorted(self._amounts.keys())
-
-
-class GroupedMoney:
-    def __init__(self, categories):
-        if isinstance(categories, str):
-            categories = self._parse(categories)
-        self._categories = categories
-
-    @staticmethod
-    def _parse(text):
-        result = {}
-        for l in text.splitlines():
-            if not l:
-                continue
-            l = l.strip(' -\t')
-            title, amount_text = l.split('=')
-            title = title.strip()
-            amount = Money(amount_text)
-            result[title] = amount
-        return result
-
-    def __add__(self, other):
-        result = defaultdict(Money)
-        for group, amount in self.items():
-            result[group] += amount
-        for group, amount in other.items():
-            result[group] += amount
-        return GroupedMoney(dict(result))
-
-    def __sub__(self, other):
-        result = defaultdict(Money)
-        for group, amount in self.items():
-            result[group] += amount
-        for group, amount in other.items():
-            result[group] -= amount
-        return GroupedMoney(dict(result))
-
-    def __eq__(self, other):
-        if set(self.categories) != set(other.categories):
-            return False
-        for group in self.categories:
-            if self[group] != other[group]:
-                return False
-        return True
-
-    def __str__(self):
-        return '\n'.join(
-            '- {} = {}'.format(k, v) for k, v in self.items()
-        )
-
-    def __getitem__(self, group):
-        return self._categories.get(group, Money())
-
-    def __len__(self):
-        return len(self._categories)
-
-    def groups(self):
-        return sorted(self._categories.keys())
-
-    def amounts(self):
-        return self._categories.values()
-
-    def sum(self):
-        return sum(self.amounts(), Money())
-
-    def items(self):
-        for group in self.categories():
-            yield group, self[group]

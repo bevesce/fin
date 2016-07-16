@@ -1,100 +1,118 @@
 import unittest
 from datetime import datetime
 
-from finanse.transaction import Transaction
-from finanse.transaction import parse_tags
-from finanse.transaction import Transactions
-from finanse.transaction import GroupedTransactions
-from finanse.money import Money
+from finanse import Transaction
+from finanse import TransactionParseError
+from finanse import Money
+from finanse import currency
+
+
+def empty(*tags):
+    return {t: None for t in tags}
 
 
 class TransactionParsingTest(unittest.TestCase):
+    def assertTransaction(self, transaction, date, tags, money):
+        self.assertEqual(transaction.date, date)
+        self.assertEqual(transaction.tags, tags)
+        self.assertEqual(transaction.money, money)
+
     def test_parse_empty_tags(self):
-        self.assertEqual({}, parse_tags(''))
+        self.assertTransaction(
+            Transaction('2016-01-02 10 zł'),
+            datetime(2016, 1, 2), {}, Money('10zł')
+        )
 
     def test_parse_single_tag(self):
-        self.assertEqual({'test': None}, parse_tags('test'))
+        self.assertTransaction(
+            Transaction('2016-01-02 t1 10 zł'),
+            datetime(2016, 1, 2), empty('t1'), Money('10zł')
+        )
 
     def test_parse_two_tags(self):
-        self.assertEqual({'t1': None, 't2': None}, parse_tags('t1 t2'))
+        self.assertTransaction(
+            Transaction('2016-01-02 t1 t2 10 zł'),
+            datetime(2016, 1, 2), empty('t1', 't2'), Money('10zł')
+        )
 
     def test_parse_single_tag_with_parameter(self):
-        self.assertEqual({'test': 'foo'}, parse_tags('test(foo)'))
+        self.assertTransaction(
+            Transaction('2016-01-02 t1(foo) 10 zł'),
+            datetime(2016, 1, 2), {'t1': 'foo'}, Money('10zł')
+        )
 
     def test_parse_two_tags_with_parameters(self):
-        self.assertEqual({'test1': 'foo', 'test2': 'bar'}, parse_tags('test1(foo) test2(bar)'))
+        self.assertTransaction(
+            Transaction('2016-01-02 t1(foo) t2(bar) 10 zł'),
+            datetime(2016, 1, 2), {'t1': 'foo', 't2': 'bar'}, Money('10zł')
+        )
 
     def test_balancing_parentheis(self):
-        self.assertEqual({'test': 'foo(bar)'}, parse_tags('test(foo(bar))'))
+        self.assertTransaction(
+            Transaction('2016-01-02 t1(foo(bar)) 10 zł'),
+            datetime(2016, 1, 2), {'t1': 'foo(bar)'}, Money('10zł')
+        )
 
     def test_balancing_parentheis_and_spaces(self):
-        self.assertEqual({'test': 'foo bar'}, parse_tags('test(foo bar)'))
+        self.assertTransaction(
+            Transaction('2016-01-02 t1(foo bar) 10 zł'),
+            datetime(2016, 1, 2), {'t1': 'foo bar'}, Money('10zł')
+        )
 
-    def test_balancing_parentheis_and_spaces(self):
-        self.assertEqual({'test': 'foo\tbar'}, parse_tags('test(foo\tbar)'))
+    def test_balancing_parentheis_and_tabs(self):
+        self.assertTransaction(
+            Transaction('2016-01-02 t1(foo\tbar) 10 zł'),
+            datetime(2016, 1, 2), {'t1': 'foo\tbar'}, Money('10zł')
+        )
+
+    def test_creation(self):
+        self.assertTransaction(
+            Transaction(
+                datetime(2016, 12, 11, 11, 10), {'tag1': None, 'tag2': None}, Money('10zł')
+            ),
+            datetime(2016, 12, 11, 11, 10),
+            {'tag1': None, 'tag2': None},
+            Money('10zł')
+        )
+
+    def test_parse_with_space_before_currency(self):
+        self.assertTransaction(
+            Transaction('2016-01-02 tag1 tag2 10 zł'),
+            datetime(2016, 1, 2), empty('tag1', 'tag2'), Money('10zł')
+        )
+
+    def test_parse_without_space_before_currency(self):
+        self.assertTransaction(
+            Transaction('2016-01-02 tag1 tag2 10zł'),
+            datetime(2016, 1, 2), empty('tag1', 'tag2'), Money('10zł')
+        )
+
+    def test_parse_invalid_date(self):
+        with self.assertRaises(TransactionParseError) as cm:
+            Transaction('2016-0x-02 re 10zł')
+        self.assertEqual(
+            str(cm.exception),
+            "can't parse '2016-0x-02' as date from '2016-0x-02 re 10zł'"
+        )
+
+    def test_parse_invalid_money(self):
+        with self.assertRaises(TransactionParseError) as cm:
+            print(Transaction('2016-01-02 re 10,x0zł'))
+        self.assertEqual(
+            str(cm.exception),
+            "can't parse 're 10,x0zł or 10,x0zł' as money from '2016-01-02 re 10,x0zł'"
+        )
 
 
-#     def assertTransaction(self, transaction, date, tags, amount):
-#         self.assertEqual(transaction.date, date)
-#         self.assertEqual(transaction.tags, tuple(tags))
-#         self.assertEqual(transaction.amount, amount)
-
-#     def test_creation(self):
-#         self.assertTransaction(
-#             Transaction(
-#                 datetime(2016, 12, 11, 11, 10), ('tag1', 'tag2'), Money('10zł')
-#             ),
-#             datetime(2016, 12, 11, 11, 10),
-#             ('tag1', 'tag2'),
-#             Money('10zł')
-#         )
-
-#     def test_parse_with_space_before_currency(self):
-#         self.assertTransaction(
-#             Transaction('2016-01-02 03:04 tag1 tag2 10 zł'),
-#             datetime(2016, 1, 2, 3, 4), ('tag1', 'tag2'), Money('10zł')
-#         )
-
-#     def test_parse_without_space_before_currency(self):
-#         self.assertTransaction(
-#             Transaction('2016-01-02 03:04 tag1 tag2 10zł'),
-#             datetime(2016, 1, 2, 3, 4), ('tag1', 'tag2'), Money('10zł')
-#         )
-
-
-# class TransactionsTest(unittest.TestCase):
-#     def test_transaction_eq(self):
-#         self.assertTrue(
-#             Transactions(
-#                 '2016-01-02 03:04 tag1 tag2 10zł'
-#             ) == Transactions(
-#                 '2016-01-02 03:04 tag1 tag2 10zł'
-#             )
-#         )
-
-#     def test_transaction_group(self):
-#         transactions = Transactions("""
-# 2016-01-02 03:04 tag1 tag2 11zł
-# 2016-01-02 03:05 tag1 tag2 12zł
-# 2016-02-02 03:06 tag1 tag2 13zł
-# 2016-03-02 03:07 tag1 tag2 14zł
-#         """)
-#         grouped_transactions = transactions.group(lambda t: t.date.strftime('%Y-%m'))
-#         self.assertEqual(
-#             grouped_transactions,
-#             GroupedTransactions({
-#                 '2016-01': Transactions("""
-# 2016-01-02 03:04 tag1 tag2 11zł
-# 2016-01-02 03:05 tag1 tag2 12zł
-#                 """),
-#                 '2016-02': Transactions("""
-# 2016-02-02 03:06 tag1 tag2 13zł
-#                 """),
-#                 '2016-03': Transactions("""
-# 2016-03-02 03:07 tag1 tag2 14zł
-#                 """)
-#             })
-#         )
+class TransactionConversionTest(unittest.TestCase):
+    def test_convert_currency(self):
+        currency.cache = {
+            '2016-01-01': {'PLN': {'EUR': 0.25}}
+        }
+        self.assertEqual(
+            str(Transaction('2016-01-01 test 10zł').convert('€')),
+            '2016-01-01 test 2,50 €'
+        )
 
 
 if __name__ == '__main__':

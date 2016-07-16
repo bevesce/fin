@@ -10,7 +10,10 @@ import subprocess
 class TestRunner(FileSystemEventHandler):
     def on_any_event(self, event):
         try:
-            subprocess.check_output(['python3', 'test_money.py'])
+            print(subprocess.check_output(['python3', 'test_transaction.py']).decode('utf-8'))
+            print(subprocess.check_output(['python3', 'test_transactions.py']).decode('utf-8'))
+            print(subprocess.check_output(['python3', 'test_grouped_transactions.py']).decode('utf-8'))
+            print(subprocess.check_output(['python3', 'test_grouped_money.py']).decode('utf-8'))
         except:
             pass
 
