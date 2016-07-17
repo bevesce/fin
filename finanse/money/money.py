@@ -65,6 +65,12 @@ class Money:
     def __eq__(self, other):
         return str(self) == str(other)
 
+    def __lt__(self, other):
+        return self.get_amount_in_reference_currency(self) < self.get_amount_in_reference_currency(other)
+
+    def __le__(self, other):
+        return self.get_amount_in_reference_currency(self) <= self.get_amount_in_reference_currency(other)
+
     def convert(self, to_currency, date=None):
         total_amount = 0
         for from_currency, amount in self._amounts.items():
@@ -78,6 +84,10 @@ class Money:
             amount % 100,
             currency
         )
+
+    @staticmethod
+    def get_amount_in_reference_currency(money):
+        return money.convert('EUR')._amounts['EUR']
 
     def currencies(self):
         return sorted(self._amounts.keys())

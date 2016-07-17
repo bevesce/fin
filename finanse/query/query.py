@@ -1,46 +1,84 @@
-# -*- coding: utf-8 -*-
-from datetime import datetime
+import datetime
+
+from .query_parser import parse_query
+from ..money import Money
 
 
-def tagged(*tags):
-    return lambda t: all(tag in t.tags for tag in tags)
+def query(text):
+    ast = parse_query(text)
+    return _create_query(ast)
 
 
-def in_this_month(transaction):
-    return month(transaction.date) == month(datetime.now())
+def _create_query(ast):
+    if ast.type == 'binary':
+        return _create_binary(ast.operator, ast.left, ast.right)
+    if ast.type == 'unary':
+        return _create_unary(ast.operator, ast.expression)
+    return _create_atomic(ast.type, ast.value)
 
 
-def not_tagged(tag):
-    return lambda t: tag not in t.tags
+def _create_binary(operator, left, right):
+    if operator in ('and', 'or'):
+        return _create_logical(operator, left, right)
+    else:
+        return _create_operation(operator, left, right)
 
 
-def tagged_with_any(*tags):
-    return lambda t: any(tag in t.tags for tag in tags)
+def _create_operation(operator, left, right):
+    if left.type == 'keyword' and left.value == 'date':
+        l = lambda t: t.date
+        r = _parse_date(right.value)
+    if left.type == 'keyword' and left.value == 'money':
+        l = lambda t: t.money
+        r = Money(right.value)
+    if left.type == 'keyword' and left.value == 'currency':
+        l = lambda t: ''.join(t.money.currencies())
+        r = right.value
+    if left.type == 'tag':
+        l = lambda t: t.tags.get(left.value)
+        r = right.value
+    if operator == '<':
+        return lambda t: l(t) < r
+    if operator == '<=':
+        return lambda t: l(t) <= r
+    if operator == '=':
+        return lambda t: l(t) == r
+    if operator == '!=':
+        return lambda t: l(t) != r
+    if operator == '>=':
+        return lambda t: l(t) >= r
+    if operator == '>':
+        return lambda t: l(t) > r
+    if operator == '^=':
+        return lambda t: l(t).startswith(r)
+    if operator == '*=':
+        return lambda t: r in l(t)
+    if operator == '$=':
+        return lambda t: l(t).endswith(r)
 
 
-def by_month(transaction):
-    return month(transaction.date)
+def _create_logical(operator, left, right):
+    l = _create_query(left)
+    r = _create_query(right)
+    if operator == 'and':
+        return lambda t: l(t) and r(t)
+    if operator == 'or':
+        return lambda t: l(t) or r(t)
 
 
-def by_year(transaction):
-    return str(transaction.date.year)
+def _create_unary(operator, right):
+    r = _create_query(right)
+    if operator == 'not':
+        return lambda t: not r(t)
 
 
-def month(date):
-    return date.strftime('%Y-%m')
+def _create_atomic(type, value):
+    if type == 'tag':
+        return lambda t: value in t.tags
 
 
-def currency(c):
-    return lambda t: c in t.amount.currencies()
-
-
-def in_month(m):
-    return lambda t: month(t.date) == m
-
-
-def after(d):
-    return lambda t: t.date >= datetime.strptime(d, '%Y-%m-%d')
-
-
-def before(d):
-    return lambda t: t.date <= datetime.strptime(d, '%Y-%m-%d')
+def _parse_date(date_string):
+    if date_string == 'today':
+        today = datetime.date.today()
+        return datetime.datetime(today.year, today.month, today.day)
+    return datetime.datetime.strptime(date_string, '%Y-%m-%d')

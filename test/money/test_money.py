@@ -73,8 +73,29 @@ class MoneyParsingTest(unittest.TestCase):
 
 
 class MoneyOperationsTest(unittest.TestCase):
-    def setUp(self):
-        Money.convert_currency = lambda x, f, t: x if f == t else 2 * x
+    def test_lt(self):
+        zloty10 = Money('10 zł')
+        euro10 = Money('20 zł')
+        self.assertTrue(zloty10 < euro10)
+        self.assertFalse(euro10 < zloty10)
+
+    def test_lte(self):
+        zloty10 = Money('10 zł')
+        euro10 = Money('20 zł')
+        self.assertTrue(zloty10 <= euro10)
+        self.assertFalse(euro10 <= zloty10)
+
+    def test_gt(self):
+        zloty10 = Money('10 zł')
+        euro10 = Money('20 zł')
+        self.assertFalse(zloty10 > euro10)
+        self.assertTrue(euro10 > zloty10)
+
+    def test_gte(self):
+        zloty10 = Money('10 zł')
+        euro10 = Money('20 zł')
+        self.assertFalse(zloty10 >= euro10)
+        self.assertTrue(euro10 >= zloty10)
 
     def test_substraction(self):
         zloty10 = Money('10 zł')

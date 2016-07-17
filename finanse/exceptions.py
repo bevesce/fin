@@ -8,3 +8,7 @@ class MoneyParseError(ParseError):
 
 class TransactionParseError(ParseError):
     pass
+
+
+class QueryParseError(ParseError):
+    pass
