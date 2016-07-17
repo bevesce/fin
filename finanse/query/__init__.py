@@ -1,2 +1,2 @@
 from .query import query
-from .by impoty by
+from .by import by

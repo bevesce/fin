@@ -4,6 +4,7 @@ from collections import Counter
 from .transactions_parser import parse_transactions
 from .grouped_transactions import GroupedTransactions
 from ..money import Money
+from ..query import by
 
 
 class Transactions:
@@ -34,6 +35,9 @@ class Transactions:
     def __add__(self, other):
         return Transactions(self._transactions + other._transactions)
 
+    def __sub__(self, other):
+        return self + other.map(lambda t: -t)
+
     def append(self, transaction):
         return Transactions(self._transactions + [transaction])
 
@@ -50,7 +54,7 @@ class Transactions:
 
     def group(self, key):
         if isinstance(key, str):
-            key = parse_transaction_group_query(key)
+            key = by(key)
         groups = defaultdict(Transactions)
         for transaction in self:
             transaction_key = key(transaction)

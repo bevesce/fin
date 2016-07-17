@@ -120,6 +120,9 @@ class MoneyOperationsTest(unittest.TestCase):
             '10,00 zł + 10,00 €'
         )
 
+    def test_amount(self):
+        self.assertEqual(Money('19zł').amount('zł'), 19)
+
 
 class MoneyConversionTest(unittest.TestCase):
     def test_convert_money(self):

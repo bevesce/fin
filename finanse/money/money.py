@@ -71,6 +71,9 @@ class Money:
     def __le__(self, other):
         return self.get_amount_in_reference_currency(self) <= self.get_amount_in_reference_currency(other)
 
+    def __neg__(self):
+        return Money() - self
+
     def convert(self, to_currency, date=None):
         total_amount = 0
         for from_currency, amount in self._amounts.items():
@@ -91,3 +94,6 @@ class Money:
 
     def currencies(self):
         return sorted(self._amounts.keys())
+
+    def amount(self, currency):
+        return self.convert(currency)._amounts[currency] / 100

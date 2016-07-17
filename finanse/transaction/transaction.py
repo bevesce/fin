@@ -24,6 +24,9 @@ class Transaction:
             self.money == other.money
         )
 
+    def __neg__(self):
+        return Transaction(self.date, self.tags, -self.money)
+
     def __str__(self):
         return '{} {} {}'.format(
             self.date.strftime(DATE_FORMAT),

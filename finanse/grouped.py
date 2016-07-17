@@ -30,6 +30,16 @@ class Grouped:
             '{}: {}'.format(k, v) for k, v in self.items()
         )
 
+    def get(self, key, value=None):
+        try:
+            return self[key]
+        except KeyError:
+            if value:
+                return value
+            if hasattr(self, 'zero'):
+                return self.zero()
+            return None
+
     def groups(self):
         return sorted(self._groups.keys())
 
