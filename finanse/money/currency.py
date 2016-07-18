@@ -31,7 +31,7 @@ def setup_cache(path):
         return
     try:
         _load_cache()
-    except FileNotFoundError:
+    except Exception:
         pass
 
 
