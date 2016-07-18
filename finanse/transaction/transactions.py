@@ -5,6 +5,7 @@ from .transactions_parser import parse_transactions
 from .grouped_transactions import GroupedTransactions
 from ..money import Money
 from ..query import by
+from ..query import query
 
 
 class Transactions:
@@ -46,7 +47,7 @@ class Transactions:
 
     def filter(self, f):
         if isinstance(f, str):
-            f = parse_transaction_filter_query(f)
+            f = query(f)
         return Transactions([t for t in self if f(t)])
 
     def sum(self):
