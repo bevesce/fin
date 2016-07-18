@@ -47,7 +47,7 @@ def plot_progress(
     goal = goals.sum().amount(in_currency)
     plt.figure(figsize=(10, 1))
     plt.yticks([])
-    plt.xticks([0, 1, value, goal, 1000])
+    plt.xticks([0, 1, value, goal])
     plt.bar(
         left=0, height=1, width=value, bottom=0,
         color=value_color
@@ -84,6 +84,7 @@ def plot_months(
         plt.plot(*on_plus, color=plus_marker_color, marker='o', linestyle='None')
     if minus_marker_color:
         plt.plot(*on_minus, color=minus_marker_color, marker='o', linestyle='None')
+
     plt.savefig(path, bbox_inches='tight')
 
 
