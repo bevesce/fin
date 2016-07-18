@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
-
 from datetime import datetime
+
 try:
     from mpltools import style
     style.use('ggplot')
@@ -14,127 +14,80 @@ except:
     pass
 
 from .money import Money
-from .query import by_month
 
 
-def plot_split_graph(
-        path,
-        sum1, sum2, in_currency,
-        color1, color2
-    ):
-
-    pamount = sum1.amount(in_currency)
-    aamount = sum2.amount(in_currency)
-    total = sum2 + sum1
+def plot_split(
+    path,
+    left_transactions, right_transactions, in_currency,
+    left_color, right_color
+):
+    left_amount = left_transactions.sum().amount(in_currency)
+    right_amount = right_transactions.sum().amount(in_currency)
+    total = left_amount + right_amount
     plt.figure(figsize=(10, 1))
     plt.yticks([])
-    plt.xticks([0, (pamount + aamount) / 2, pamount + aamount])
+    plt.xticks([0, total / 2, total])
     plt.bar(
-        left=0, height=1, width=pamount, bottom=0,
-        color=color1
+        left=0, height=1, width=left_amount, bottom=0,
+        color=left_color
     )
     plt.bar(
-        left=pamount, height=1, width=aamount, bottom=0,
-        color=color2
+        left=left_amount, height=1, width=right_amount, bottom=0,
+        color=right_color
     )
-    plt.savefig(
-        path,
-        bbox_inches='tight'
+    plt.savefig(path, bbox_inches='tight')
+
+
+def plot_progress(
+    path,
+    values, goals, in_currency,
+    value_color, goal_color
+):
+    value = values.sum().amount(in_currency)
+    goal = goals.sum().amount(in_currency)
+    plt.figure(figsize=(10, 1))
+    plt.yticks([])
+    plt.xticks([0, 1, value, goal, 1000])
+    plt.bar(
+        left=0, height=1, width=value, bottom=0,
+        color=value_color
     )
-
-
-def plot_monthly_graph(
-        path,
-        transactions, title,
-        color, avg_color,
-        plus_marker_color=None, minus_marker_color=None,
-        sub_transactions=None,
-        currency='€'
-    ):
-
-    filename = 'finanse_' + title + '.png'
-
-    plus_marker_color = plus_marker_color or color
-    minus_marker_color = minus_marker_color or color
-
-    months = list(months_range(transactions))
-    sums = transactions.group(by_month).sum()
-
-    if sub_transactions:
-        sums -= sub_transactions.group(by_month).sum()
-    avgs = moving_averages(sums, list(reversed(months)))
-
-    fig, ax = plt.subplots(figsize=(12, 4))
-    x = [i for i in range(0, len(months))]
-    sums = [sums[m].amount(currency) for m in months]
-    avgs = [avgs[m].amount(currency) for m in months]
-    ax.set_xticks(x)
-    ax.set_xticklabels(months, rotation=90)
-    plt.plot(x, sums, color=color, linestyle='-')
-    plt.plot(x, avgs, color=avg_color, linestyle='-')
-    plt.ylabel('kwota [{}]'.format(currency))
-    plt.xlabel('data')
-
-    xs_green = []
-    ys_green = []
-    xs_red = []
-    ys_red = []
-    for i, v in enumerate(sums):
-        if v >= 0:
-            xs_green.append(i)
-            ys_green.append(v)
-        else:
-            xs_red.append(i)
-            ys_red.append(v)
-    plt.plot(xs_green, ys_green, color=plus_marker_color, marker='o', linestyle='None')
-    plt.plot(xs_red, ys_red, color=minus_marker_color, marker='o', linestyle='None')
-
-    plt.savefig(
-        path,
-        bbox_inches='tight'
-    )
-
-    return filename
-
-
-def plot_envelopes(
-        path,
-        envelopes, goals,
-        envelopes_color, goal_color, over_goal_color
-    ):
-    filename = 'finanse_koperty.png'
-    to_accumulate = goals - envelopes
-    currency = '€'
-
-    N = len(goals)
-    plt.figure(figsize=(8, N))
-    in_envelopes = [envelopes[c].amount(currency) for c in goals.categories()]
-    diff = [to_accumulate[c].amount(currency) for c in goals.categories()]
-    overflow = [0 if v > 0 else v for v in diff]
-    in_to_accumulate = [0 if v < 0 else v for v in diff]
-    ind = [i for i in range(N)] # the x locations for the groups
-    width = 0.1 # the width of the bars: can also be len(x) sequence
-    p1 = plt.bar(
-        left=[0] * N, height=[1] * N, width=in_envelopes, bottom=ind,
-        color=envelopes_color
-    )
-    p2 = plt.bar(
-        left=in_envelopes, height=[1] * N, width=in_to_accumulate, bottom=ind,
+    plt.bar(
+        left=0, height=0.1, width=goal, bottom=0,
         color=goal_color
     )
-    p3 = plt.bar(
-        left=in_envelopes, height=[1] * N, width=overflow, bottom=ind,
-        color=over_goal_color
-    )
-    plt.yticks([i + 0.5 for i in ind], list(goals.categories()))
-    plt.savefig(
-        path,
-        bbox_inches='tight'
-    )
-    return filename
+    plt.savefig(path, bbox_inches='tight')
 
 
-def months_range(data):
+def plot_months(
+    path,
+    transactions, in_currency,
+    line_color, average_line_color,
+    plus_marker_color=None, minus_marker_color=None
+):
+    groups = transactions.group('year-month').sum()
+    months = list(_months_range(transactions))
+    sums = [groups.get(m).amount(in_currency) for m in months]
+    avgs = list(_calculate_moving_yearly_averages(sums))
+    xticks = list(range(0, len(months)))
+
+    fig, ax = plt.subplots(figsize=(12, 4))
+
+    ax.set_xticks(xticks)
+    ax.set_ylim(min(min(sums) - 10, 0), max(sums) + 10)
+    ax.set_xticklabels(months, rotation=90)
+    plt.plot(xticks, sums, color=line_color, linestyle='-')
+    plt.plot(xticks, avgs, color=average_line_color, linestyle='-')
+
+    on_plus, on_minus = _split_sums_based_on_sign(sums)
+    if plus_marker_color:
+        plt.plot(*on_plus, color=plus_marker_color, marker='o', linestyle='None')
+    if minus_marker_color:
+        plt.plot(*on_minus, color=minus_marker_color, marker='o', linestyle='None')
+    plt.savefig(path, bbox_inches='tight')
+
+
+def _months_range(data):
     dates = [t.date for t in data]
     start = min(dates)
     end = datetime.now()
@@ -149,24 +102,29 @@ def months_range(data):
     yield end.strftime('%Y-%m')
 
 
-def monthly_average(transactions, sub_transactions=None):
-    grouped_by_month = transactions.group(by_month)
-    sums = grouped_by_month.sum()
-    if sub_transactions:
-        sub_grouped_by_month = sub_transactions.group(by_month)
-        sub_sums = sub_grouped_by_month.sum()
-        sums -= sub_sums
-    return sum(sums.amounts(), Money()) / len(sums)
+def _split_sums_based_on_sign(sums):
+    xticks_on_plus = []
+    sums_on_plus = []
+    xticks_on_minus = []
+    sums_on_minus = []
+    for x, sum in enumerate(sums):
+        if sum > 0:
+            xticks_on_plus.append(x)
+            sums_on_plus.append(sum)
+        else:
+            xticks_on_minus.append(x)
+            sums_on_minus.append(sum)
+    return (xticks_on_plus, sums_on_plus), (xticks_on_minus, sums_on_minus)
 
 
-def moving_averages(data, keys, size=12):
-    averages = defaultdict(Money)
-    values = [data[k] for k in keys]
-    value = sum(values[:size], Money())
-    for i in range(0, len(values)):
-        k = keys[i]
-        averages[k] = value / min(size, len(values) - i)
-        value -= values[i]
-        if i + size < len(values):
-            value += values[i + size]
-    return averages
+
+def _calculate_moving_yearly_averages(sums):
+    for end in range(1, len(sums) + 1):
+        start = max(end - 12, 0)
+        size = end - start
+        yield sum(sums[start:end]) / size
+
+
+def monthly_average(transactions):
+    months = transactions.group('year-month')
+    return months.sum().sum() / len(list(_months_range(transactions)))
