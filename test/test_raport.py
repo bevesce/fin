@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from finanse import raport
 from finanse import Transactions
 from finanse import Transaction

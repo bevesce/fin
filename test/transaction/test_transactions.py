@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 from finanse import GroupedTransactions
 from finanse import Transactions

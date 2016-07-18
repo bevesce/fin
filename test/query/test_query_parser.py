@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 from finanse.query.query_parser import QueryLexer
 from finanse.query.query_parser import QueryToken

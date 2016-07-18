@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
-from urllib import request
-from urllib import error
+try:
+    from urllib import request
+    from urllib import error
+except ImportError:
+    pass
+try:
+    import requests
+except:
+    pass
 import datetime
 import pickle
 import json
@@ -72,10 +79,15 @@ def _get_rates(base, date=None):
 def _get_fixer_rates(base, date):
     url = _prepare_fixer_url(base, date)
     try:
-        response = request.urlopen(url)
-    except error.HTTPError as e:
-        _raise_coldnt_download_rates_exception(base, date, e)
-    response_data = json.loads(response.read().decode('utf-8'))
+
+        response = requests.get(url)
+        response_data = response.json
+    except Exception:
+        try:
+            response = request.urlopen(url)
+            response_data = json.loads(response.read().decode('utf-8'))
+        except error.HTTPError as e:
+            _raise_coldnt_download_rates_exception(base, date, e)
     return response_data['rates']
 
 
