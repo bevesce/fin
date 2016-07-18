@@ -75,19 +75,19 @@ def _get_rates(base, date=None):
         return rates
 
 
-
 def _get_fixer_rates(base, date):
     url = _prepare_fixer_url(base, date)
     try:
-
         response = requests.get(url)
-        response_data = response.json
+        response_data = response.json()
+        if response.status_code != 200:
+            _raise_coldnt_download_rates_exception(base, date, response.status_code, response.json()['error'])
     except Exception:
         try:
             response = request.urlopen(url)
             response_data = json.loads(response.read().decode('utf-8'))
         except error.HTTPError as e:
-            _raise_coldnt_download_rates_exception(base, date, e)
+            _raise_coldnt_download_rates_exception(base, date, e.code, json.loads(e.read().decode('utf-8'))['error'])
     return response_data['rates']
 
 
@@ -98,9 +98,9 @@ def _prepare_fixer_url(base, date):
     )
 
 
-def _raise_coldnt_download_rates_exception(base, date, exception):
+def _raise_coldnt_download_rates_exception(base, date, code, message):
     raise Exception(
         "Couldn't download conversion rates for base: '{}' at date: '{}', because: [{}] {}".format(
-            base, date, exception.code, json.loads(exception.read().decode('utf-8'))['error']
+            base, date, code, message
         )
     )

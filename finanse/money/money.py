@@ -7,8 +7,6 @@ from .money_parser import parse_money, create_amounts
 
 
 class Money:
-    convert_currency = convert_currency
-
     def __init__(self, amounts=None):
         """
         amounts: {currency : amount of this currency}
@@ -77,7 +75,7 @@ class Money:
     def convert(self, to_currency, date=None):
         total_amount = 0
         for from_currency, amount in self._amounts.items():
-            total_amount += Money.convert_currency(amount, from_currency, to_currency, date)
+            total_amount += convert_currency(amount, from_currency, to_currency, date)
         return Money({to_currency: int(total_amount)})
 
     @staticmethod

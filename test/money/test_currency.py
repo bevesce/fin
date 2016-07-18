@@ -25,6 +25,7 @@ class ConvertTest(unittest.TestCase):
         try:
             currency.convert(1, 'test', 'zł', date(2015, 1, 1))
         except Exception as e:
+            print(e)
             self.assertEqual(
                 "Couldn't download conversion rates for base: 'test' at date: '2015-01-01', because: [422] Invalid base",
                 str(e)
