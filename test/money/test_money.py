@@ -124,6 +124,9 @@ class MoneyOperationsTest(unittest.TestCase):
     def test_amount(self):
         self.assertEqual(Money('19zł').amount('zł'), 19)
 
+    def test_neq(self):
+        self.assertEqual(-Money('19zł').amount('zł'), Money('-19zł'))
+
 
 class MoneyConversionTest(unittest.TestCase):
     def test_convert_money(self):

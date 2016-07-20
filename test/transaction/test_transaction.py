@@ -104,6 +104,11 @@ class TransactionParsingTest(unittest.TestCase):
             "can't parse 're 10,x0zł or 10,x0zł' as money from '2016-01-02 re 10,x0zł'"
         )
 
+    def test_parse_invalid_money(self):
+        self.assertEqual(
+            -Transaction('2016-01-02 re 100zł').money,
+            Money('-10zł')
+        )
 
 class TransactionConversionTest(unittest.TestCase):
     def test_convert_currency(self):

@@ -35,7 +35,7 @@ def _create_operation(operator, left, right):
         l = lambda t: ''.join(t.money.currencies())
         r = right.value
     if left.type == 'tag':
-        l = lambda t: t.tags.get(left.value)
+        l = lambda t: t.tags.get(left.value, '')
         r = right.value
     if operator == '<':
         return lambda t: l(t) < r
@@ -74,7 +74,7 @@ def _create_unary(operator, right):
 
 def _create_atomic(type, value):
     if type == 'tag':
-        return lambda t: value in t.tags
+        return lambda t: value.lower() in (t.lower() for t in t.tags)
 
 
 def _parse_date(date_string):

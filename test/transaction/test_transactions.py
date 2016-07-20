@@ -116,6 +116,11 @@ class TransactionsTest(unittest.TestCase):
             Transactions('2016-01-01 10zł\nx')
         self.assertEqual(str(cm.exception), "can't parse 'x' as date from 'x' at line: 2")
 
+    def test_sub(self):
+        self.assertEqual(
+            Transactions('2016-01-01 test 10zł') - Transactions('2016-01-02 test 10zł'),
+            Transactions('2016-01-01 test 10zł\n2016-01-02 test -10zł')
+        )
 
 if __name__ == '__main__':
     unittest.main()

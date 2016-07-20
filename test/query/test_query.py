@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import unittest
+import datetime
 from finanse import query
 from finanse import Transaction
 
@@ -10,6 +11,14 @@ class QueryTest(unittest.TestCase):
         )
         self.assertFalse(
             query('foo')(Transaction('2016-01-01 test 10zł'))
+        )
+
+    def test_tag_is_case_insetive(self):
+        self.assertTrue(
+            query('test')(Transaction('2016-01-01 Test 10zł'))
+        )
+        self.assertTrue(
+            query('Test')(Transaction('2016-01-01 test 10zł'))
         )
 
     def test_tag_param(self):
@@ -49,7 +58,7 @@ class QueryTest(unittest.TestCase):
             query('date = 2016-01-01')(Transaction('2016-01-01 bar 10zł'))
         )
         self.assertTrue(
-            query('date = today')(Transaction('2016-07-17 bar 10zł'))
+            query('date = today')(Transaction(datetime.date.today().strftime('%F') + ' bar 10zł'))
         )
         self.assertFalse(
             query('date = 2016-01-02')(Transaction('2016-01-01 test 10zł'))
@@ -141,6 +150,9 @@ class QueryTest(unittest.TestCase):
         self.assertFalse(
             query('test *= b')(Transaction('2016-01-01 test(aaa) 10zł'))
         )
+        self.assertFalse(
+            query('test *= a')(Transaction('2016-01-01 foo(aaa) 10zł'))
+        )
 
     def test_starts(self):
         self.assertTrue(
@@ -149,6 +161,9 @@ class QueryTest(unittest.TestCase):
         self.assertFalse(
             query('test ^= b')(Transaction('2016-01-01 test(abb) 10zł'))
         )
+        self.assertFalse(
+            query('test ^= b')(Transaction('2016-01-01 foo 10zł'))
+        )
 
     def test_ends(self):
         self.assertTrue(
@@ -156,6 +171,9 @@ class QueryTest(unittest.TestCase):
         )
         self.assertFalse(
             query('test $= b')(Transaction('2016-01-01 test(baa) 10zł'))
+        )
+        self.assertFalse(
+            query('test $= b')(Transaction('2016-01-01 foo 10zł'))
         )
 
     def test_logical_and_operational(self):
