@@ -39,6 +39,9 @@ class Transactions:
     def __sub__(self, other):
         return self + other.map(lambda t: -t)
 
+    def convert(self, currency):
+        return Transactions([t.convert(currency) for t in self])
+
     def append(self, transaction):
         return Transactions(self._transactions + [transaction])
 
