@@ -30,9 +30,15 @@ class Transaction:
     def __str__(self):
         return '{} {} {}'.format(
             self.date.strftime(DATE_FORMAT),
-            ' '.join(sorted(self.tags)),
+            ' '.join(self._str_tag(t) for t in sorted(self.tags)),
             self.money
         )
+
+    def _str_tag(self, tag):
+        param = self.tags[tag]
+        if param:
+            return '{}({})'.format(tag, param)
+        return tag
 
     def convert(self, currency):
         return Transaction(
