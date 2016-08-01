@@ -71,7 +71,7 @@ or using simple query language:
 2016-07-01 spiders 2€
 ```
 
-Full documentation of this language is in the [wiki](https://github.com/bevesce/finanse/wiki/filter%20query). The same is true about single [Transaction object](https://github.com/bevesce/finanse/wiki/Transaction).
+Full documentation of this language is in the [wiki](https://github.com/bevesce/finanse/wiki/filter%20query). The same is true about singular [Transaction object](https://github.com/bevesce/finanse/wiki/Transaction).
 
 ### Group
 
