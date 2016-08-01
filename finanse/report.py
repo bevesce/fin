@@ -2,14 +2,15 @@
 from collections import defaultdict
 from datetime import datetime
 
-try:
-    from mpltools import style
-    style.use('ggplot')
-except:
-    pass
+# try:
+#     from mpltools import style
+#     style.use('ggplot')
+# except:
+#     pass
 
 try:
     import matplotlib.pyplot as plt
+    plt.style.use('ggplot')
 except:
     pass
 
@@ -40,11 +41,11 @@ def plot_split(
 
 def plot_progress(
     path,
-    values, goals, in_currency,
+    transactions, goal_transactions, in_currency,
     value_color, goal_color
 ):
-    value = values.sum().amount(in_currency)
-    goal = goals.sum().amount(in_currency)
+    value = transactions.sum().amount(in_currency)
+    goal = goal_transactions.sum().amount(in_currency)
     plt.figure(figsize=(10, 1))
     plt.yticks([])
     plt.xticks([0, 1, value, goal])
