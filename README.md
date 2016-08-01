@@ -28,7 +28,7 @@ Track expenses and transactions in plain text using python 3.
 
 At least for now, I don't wan't unecesserly pollute pip. So to install *finanse* you need to manaully download repository and copy `finanse` folder somewhere when python can reach it.
 
-*Finanse* doesn't have any hard dependencies, and only one optional: `matplotlib` if you want to use reporting with charts. 
+*Finanse* doesn't have any hard dependencies, and one optional, `matplotlib`, required if you want to use reporting with charts. 
 
 ## Usage
 
