@@ -27,10 +27,22 @@ class GroupedTransactionsTest(unittest.TestCase):
                 'test2': Transactions('2016-01-01 test 20zł'),
             })),
             """test1:
-2016-01-01 test 10,00 zł
-
+  2016-01-01 test 10,00 zł
 test2:
-2016-01-01 test 20,00 zł"""
+  2016-01-01 test 20,00 zł"""
+        )
+
+    def test_str(self):
+        self.assertEqual(
+            str(GroupedTransactions({
+                'test1': GroupedTransactions({'test3': Transactions('2016-01-01 test 10zł')}),
+                'test2': Transactions('2016-01-01 test 20zł'),
+            })),
+            """test1:
+  test3:
+    2016-01-01 test 10,00 zł
+test2:
+  2016-01-01 test 20,00 zł"""
         )
 
     def test_len(self):

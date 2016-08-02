@@ -8,11 +8,18 @@ class GroupedTransactions(Grouped, GroupedMonoid):
         from .transactions import Transactions
         return Transactions()
 
-    def __str__(self):
-        return '\n\n'.join(
-            str(k) + ':\n' + str(self[k])
-            for k in self.groups()
-        )
+    def __str__(self, indent=0):
+        lines = []
+        indent_style = '  '
+        for key in self.groups():
+            lines.append(indent * indent_style + str(key) + ':')
+            value = self[key]
+            if isinstance(value, GroupedTransactions):
+                lines.append(value.__str__(indent + 1))
+            else:
+                for t in value:
+                    lines.append((indent + 1) * indent_style + str(t))
+        return '\n'.join(lines)
 
     def __repr__(self):
         return str(self)
