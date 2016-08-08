@@ -20,7 +20,7 @@ from .money import Money
 def plot_split(
     path,
     left_transactions, right_transactions, in_currency,
-    left_color, right_color
+    left_color='green', right_color='blue'
 ):
     left_amount = left_transactions.sum().amount(in_currency)
     right_amount = right_transactions.sum().amount(in_currency)
@@ -42,7 +42,7 @@ def plot_split(
 def plot_progress(
     path,
     transactions, goal_transactions, in_currency,
-    value_color, goal_color
+    value_color='blue', goal_color='green'
 ):
     value = transactions.sum().amount(in_currency)
     goal = goal_transactions.sum().amount(in_currency)
@@ -63,7 +63,7 @@ def plot_progress(
 def plot_months(
     path,
     transactions, in_currency,
-    line_color, average_line_color,
+    line_color='black', average_line_color='blue',
     plus_marker_color=None, minus_marker_color=None
 ):
     groups = transactions.group('year-month').sum()
