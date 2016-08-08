@@ -81,4 +81,13 @@ def _parse_date(date_string):
     if date_string == 'today':
         today = datetime.date.today()
         return datetime.datetime(today.year, today.month, today.day)
+    if date_string == 'thismonth':
+        today = datetime.date.today()
+        return datetime.datetime(today.year, today.month, 1)
+    if date_string == 'nextmonth':
+        today = datetime.date.today()
+        try:
+            return datetime.datetime(today.year, today.month + 1, 1)
+        except ValueError:
+            return datetime.datetime(today.year + 1, 1, 1)
     return datetime.datetime.strptime(date_string, '%Y-%m-%d')
