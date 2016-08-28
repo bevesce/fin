@@ -52,11 +52,11 @@ atexit.register(_save_cache)
 
 
 def convert(amount, from_currency, to_currency, date=None):
+    if from_currency == to_currency:
+        return amount
     rates = _get_rates(from_currency, date)
     from_currency = currencies_aliases.get(from_currency, from_currency)
     to_currency = currencies_aliases.get(to_currency, to_currency)
-    if from_currency == to_currency:
-        return amount
     try:
         return amount * rates[to_currency]
     except KeyError:
