@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from datetime import datetime
+from datetime import timedelta
 
 # try:
 #     from mpltools import style
@@ -126,6 +127,64 @@ def _calculate_moving_yearly_averages(sums):
         size = end - start
         yield sum(sums[start:end]) / size
 
+
+def plot_days(
+    path, transactions, in_currency, line_color, least_squares_color=None
+):
+    xticks = list(_index_dates([t.date for t in transactions]))
+    xlabels = [t.date.strftime('%F') for t in transactions]
+    values = [transactions.group('date').sum()[k].amount('kg') for k in xlabels]
+
+    fig, ax = plt.subplots(figsize=(12, 4))
+    ax.set_xticks(xticks)
+    ax.set_ylim(min(values) - 2, max(values) + 2)
+    ax.set_xticklabels(xlabels, rotation=90)
+
+    plt.plot(xticks, values, color=line_color, linestyle='-')
+
+    if least_squares_color:
+        ls_line, _, _ = least_squares(xticks, values)
+        if ls_line:
+            plt.plot(xticks, ls_line, color=least_squares_color, linestyle='-')
+
+    plt.savefig(path, bbox_inches='tight')
+
+
+
+def _days_range(transactions):
+    start_date = min(t.date for t in transactions)
+    end_date = max(t.date for t in transactions)
+    while start_date < end_date:
+        yield start_date.strftime('%F')
+        start_date += timedelta(days=1)
+
+
+def _index_dates(dates):
+    d = timedelta(days=1)
+    start = dates[0]
+    end = dates[-1]
+    index = 0
+    while start <= end:
+        if start in dates:
+            yield index
+        start += d
+        index += 1
+
+
+def least_squares(xs, ys):
+    S = len(xs)
+    Sx = sum(xs)
+    Sy = sum(ys)
+    Sxx = sum(x ** 2 for x in xs)
+    Syy = sum(y ** 2 for y in ys)
+    Sxy = sum(x * y for x, y in zip(xs, ys))
+    D = S * Sxx - (Sx) ** 2
+    try:
+        a = (S * Sxy - Sx * Sy) / D
+        b = (Sxx * Sy - Sx * Sxy) / D
+        return [a * x + b for x in xs], a, b
+    except:
+        return None, None, None
 
 def monthly_average(transactions):
     months = transactions.group('year-month')
