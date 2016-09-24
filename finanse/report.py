@@ -129,18 +129,26 @@ def _calculate_moving_yearly_averages(sums):
 
 
 def plot_days(
-    path, transactions, in_currency, line_color, least_squares_color=None
+    path, transactions, in_currency, line_color, least_squares_color=None,
+    reference_value=None, reference_color=None
 ):
     xticks = list(_index_dates([t.date for t in transactions]))
     xlabels = [t.date.strftime('%F') for t in transactions]
-    values = [transactions.group('date').sum()[k].amount('kg') for k in xlabels]
+    values = [transactions.group('date').sum()[k].amount(in_currency) for k in xlabels]
 
     fig, ax = plt.subplots(figsize=(12, 4))
     ax.set_xticks(xticks)
-    ax.set_ylim(min(values) - 2, max(values) + 2)
+    min_value = min(values) - 2
+    max_value = max(values) + 2
+    if reference_value:
+        min_value = min(reference_value - 2, min_value)
+        max_value = max(reference_value - 2, max_value)
+    ax.set_ylim(min_value, max_value)
     ax.set_xticklabels(xlabels, rotation=90)
 
     plt.plot(xticks, values, color=line_color, linestyle='-')
+    if (reference_value):
+        plt.plot(xticks, [reference_value] * len(xticks), color=reference_color, linestyle='-')
 
     if least_squares_color:
         ls_line, _, _ = least_squares(xticks, values)
