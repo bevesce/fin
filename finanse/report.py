@@ -132,6 +132,8 @@ def plot_days(
     path, transactions, in_currency, line_color, least_squares_color=None,
     reference_value=None, reference_color=None
 ):
+    if not transactions:
+        return
     xticks = list(_index_dates([t.date for t in transactions]))
     xlabels = [t.date.strftime('%F') for t in transactions]
     values = [transactions.group('date').sum()[k].amount(in_currency) for k in xlabels]
