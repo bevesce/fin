@@ -1,93 +1,97 @@
 import datetime
 
-from .query_parser import parse_query
 from ..money import Money
+from .parse_date import parse_date
 
 
 def query(text):
-    ast = parse_query(text)
-    return _create_query(ast)
+    from .query_parser import parse_query
+    return parse_query(text)
 
 
-def _create_query(ast):
-    if ast.type == 'binary':
-        return _create_binary(ast.operator, ast.left, ast.right)
-    if ast.type == 'unary':
-        return _create_unary(ast.operator, ast.expression)
-    return _create_atomic(ast.type, ast.value)
+class Binary:
+    def __init__(self, token, left, right):
+        self.type = 'binary'
+        self.operator = token.value
+        self.left = left
+        self.right = right
+
+    def __call__(self, transaction):
+        if self.operator == 'and':
+            return self.left(transaction) and self.right(transaction)
+        elif self.operator == 'or':
+            return self.left(transaction) or self.right(transaction)
+        else:
+            return self.relation(transaction)
+
+    def relation(self, transaction):
+        left_side, right_side = self.calculate_sides(transaction)
+        if left_side is None and right_side is None:
+            return False
+        if self.operator == '<':
+            return left_side < right_side
+        elif self.operator == '<=':
+            return left_side <= right_side
+        elif self.operator == '=':
+            return left_side == right_side
+        elif self.operator == '!=':
+            return left_side != right_side
+        elif self.operator == '>=':
+            return left_side >= right_side
+        elif self.operator == '>':
+            return left_side > right_side
+        elif self.operator == '^=':
+            return left_side.startswith(right_side)
+        elif self.operator == '*=':
+            return right_side in left_side
+        elif self.operator == '$=':
+            return left_side.endswith(right_side)
+
+    def calculate_sides(self, transaction):
+        left_side = None
+        right_side = None
+        if self.left.type == 'keyword' and self.left.value == 'date':
+            left_side = transaction.date
+            right_side = parse_date(self.right.value)
+        elif self.left.type == 'keyword' and self.left.value == 'money':
+            left_side = transaction.money
+            right_side = Money(self.right.value)
+        elif self.left.type == 'keyword' and self.left.value == 'currency':
+            left_side = ''.join(transaction.money.currencies())
+            right_side = self.right.value
+        elif self.left.type == 'tag':
+            left_side = transaction.tags.get(self.left.value, '')
+            right_side = self.right.value
+        return left_side, right_side
+
+    def __str__(self):
+        return '({} {} {})'.format(self.left, self.operator, self.right)
 
 
-def _create_binary(operator, left, right):
-    if operator in ('and', 'or'):
-        return _create_logical(operator, left, right)
-    else:
-        return _create_operation(operator, left, right)
+class Unary:
+    def __init__(self, token, right):
+        self.type = 'unary'
+        self.operator = token.value
+        self.right = right
+
+    def __call__(self, transaction):
+        if self.operator == 'not':
+            return not self.right(transaction)
+
+    def __str__(self):
+        return '({} {})'.format(self.operator, self.right)
 
 
-def _create_operation(operator, left, right):
-    if left.type == 'keyword' and left.value == 'date':
-        l = lambda t: t.date
-        r = _parse_date(right.value)
-    if left.type == 'keyword' and left.value == 'money':
-        l = lambda t: t.money
-        r = Money(right.value)
-    if left.type == 'keyword' and left.value == 'currency':
-        l = lambda t: ''.join(t.money.currencies())
-        r = right.value
-    if left.type == 'tag':
-        l = lambda t: t.tags.get(left.value, '')
-        r = right.value
-    if operator == '<':
-        return lambda t: l(t) < r
-    if operator == '<=':
-        return lambda t: l(t) <= r
-    if operator == '=':
-        return lambda t: l(t) == r
-    if operator == '!=':
-        return lambda t: l(t) != r
-    if operator == '>=':
-        return lambda t: l(t) >= r
-    if operator == '>':
-        return lambda t: l(t) > r
-    if operator == '^=':
-        return lambda t: l(t).startswith(r)
-    if operator == '*=':
-        return lambda t: r in l(t)
-    if operator == '$=':
-        return lambda t: l(t).endswith(r)
+class Atom:
+    def __init__(self, token):
+        self.type = token.type
+        self.value = token.value.lower()
 
+    def __call__(self, transaction):
+        if self.type == 'tag':
+            return self.value in (
+                t.lower() for t in transaction.tags
+            )
 
-def _create_logical(operator, left, right):
-    l = _create_query(left)
-    r = _create_query(right)
-    if operator == 'and':
-        return lambda t: l(t) and r(t)
-    if operator == 'or':
-        return lambda t: l(t) or r(t)
-
-
-def _create_unary(operator, right):
-    r = _create_query(right)
-    if operator == 'not':
-        return lambda t: not r(t)
-
-
-def _create_atomic(type, value):
-    if type == 'tag':
-        return lambda t: value.lower() in (t.lower() for t in t.tags)
-
-
-def _parse_date(date_string):
-    if date_string == 'today':
-        today = datetime.date.today()
-        return datetime.datetime(today.year, today.month, today.day)
-    if date_string == 'thismonth':
-        today = datetime.date.today()
-        return datetime.datetime(today.year, today.month, 1)
-    if date_string == 'nextmonth':
-        today = datetime.date.today()
-        try:
-            return datetime.datetime(today.year, today.month + 1, 1)
-        except ValueError:
-            return datetime.datetime(today.year + 1, 1, 1)
-    return datetime.datetime.strptime(date_string, '%Y-%m-%d')
+    def __str__(self):
+        return self.value

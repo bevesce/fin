@@ -152,14 +152,6 @@ class QueryParserTest(unittest.TestCase):
             "can't parse '(test': unbalanced parenthesis"
         )
 
-    def test_unbalanced_left_parenthesis(self):
-        with self.assertRaises(QueryParseError) as cm:
-            self.parse('test)')
-        self.assertEqual(
-            str(cm.exception),
-            "can't parse 'test)': unbalanced parenthesis"
-        )
-
     def test_unbalanced_string(self):
         with self.assertRaises(QueryParseError) as cm:
             self.parse('"test')
@@ -204,29 +196,11 @@ class QueryParserTest(unittest.TestCase):
             '((q or w) and r)'
         )
 
-    def test_invalid_operator_right(self):
-        with self.assertRaises(QueryParseError) as cm:
-            self.parse('date = (q or w)')
-        self.assertEqual(
-            str(cm.exception),
-            "can't parse 'date = (q or w)': '(q or w)' can't be on the right side of '=' operator"
-        )
-
     def test_eq_higher_that_or(self):
         self.assertEqual(
             self.parse('date = q or w'),
             '((date = q) or w)'
         )
-
-    def test_invalid_operator_right2(self):
-        with self.assertRaises(QueryParseError) as cm:
-            self.parse('q = w = r')
-        self.assertEqual(
-            str(cm.exception),
-            "can't parse 'q = w = r': '(q = w)' can't be on the left side of '=' operator"
-        )
-
-    'test >= b'
 
 
 if __name__ == '__main__':

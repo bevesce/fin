@@ -4,6 +4,7 @@ import datetime
 from finanse import query
 from finanse import Transaction
 
+
 class QueryTest(unittest.TestCase):
     def test_tag(self):
         self.assertTrue(
@@ -186,6 +187,18 @@ class QueryTest(unittest.TestCase):
         self.assertFalse(
             query('test = b and foo')(Transaction('2016-01-01 foo 10zł'))
         )
+
+    def test_implicit_and_between_words(self):
+        self.assertTrue(
+            query('foo bar')(Transaction('2016-01-01 foo bar 10zł'))
+        )
+        self.assertFalse(
+            query('foo bar')(Transaction('2016-01-01 foo 10zł'))
+        )
+        self.assertFalse(
+            query('foo bar')(Transaction('2016-01-01 bar 10zł'))
+        )
+
 
 if __name__ == '__main__':
     unittest.main()

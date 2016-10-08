@@ -1,64 +1,13 @@
 from collections import namedtuple
 from ..exceptions import QueryParseError
-
+from .query import Binary
+from .query import Unary
+from .query import Atom
 
 QueryToken = namedtuple('QueryToken', ('type', 'value'))
 
 def parse_query(text):
     return QueryParser().run(text)
-
-
-class Binary:
-    def __init__(self, token, left, right):
-        self.type = 'binary'
-        self.operator = token.value
-        self.left = left
-        self.right = right
-
-    def __str__(self):
-        return '({} {} {})'.format(self.left, self.operator, self.right)
-
-    def validate(self, text):
-        if not self.left:
-            raise QueryParseError(str(self))
-        if not self.right:
-            raise QueryParseError(str(self))
-        if self.operator in set(['and', 'or']):
-            return
-        elif self.left.type not in set(['keyword', 'tag']):
-            raise_parse(
-                text,
-                "'{}' can't be on the left side of '{}' operator".format(self.left, self.operator)
-            )
-        elif self.right.type not in set(['string', 'tag']):
-            raise_parse(
-                text,
-                "'{}' can't be on the right side of '{}' operator".format(self.right, self.operator)
-            )
-        if self.operator in set(['^=', '*=', '$=']) and self.left.type != 'tag':
-            raise QueryParseError(
-                text,
-                "'{}' can't be on the left side of '{}' operator".format(self.left, self.operator)
-            )
-
-
-class Unary:
-    def __init__(self, token, expression):
-        self.type = 'unary'
-        self.operator = token.value
-        self.expression = expression
-
-    def __str__(self):
-        return '({} {})'.format(self.operator, self.expression)
-
-
-class Atom:
-    def __init__(self, token):
-        self.type = token.type
-        self.value = token.value
-
-    def __str__(self):
-        return self.value
 
 
 class QueryParser:
@@ -72,14 +21,7 @@ class QueryParser:
     def run(self, text):
         self.text = text
         self.tokens = QueryLexer().run(text)
-        ast = self.maybe_binary(self.parse_atom(), 0)
-        if self.tokens:
-            raise_parse(self.text, 'unbalanced parenthesis')
-        if ast.type in ('binary', 'unary'):
-            return ast
-        if ast.type != 'tag':
-            raise_parse(self.text, "{} can't be standalone".format(ast.value))
-        return ast
+        return self.maybe_binary(self.parse_atom(), 0)
 
     def pick(self):
         return self.tokens[0]
@@ -128,7 +70,6 @@ class QueryParser:
                 self.pop()
                 right = self.maybe_binary(self.parse_atom(), token_precedence)
                 binary = Binary(token, left, right)
-                binary.validate(self.text)
                 return self.maybe_binary(binary, precedence)
         return left
 
@@ -180,7 +121,7 @@ class QueryLexer:
                 self.push(self.read_operator())
             else:
                 self.push(self.read_identifier())
-        return self.tokens
+        return list(self.clean_up(self.tokens))
 
     def pick(self):
         return self.chars[0]
@@ -273,3 +214,11 @@ class QueryLexer:
                 return word
             c = self.pick()
         return word
+
+    def clean_up(self, tokens):
+        previous = None
+        for token in tokens:
+            if previous and previous.type == 'tag' and token.type == 'tag':
+                yield QueryToken('operator', 'and')
+            yield token
+            previous = token
