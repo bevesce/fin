@@ -27,13 +27,14 @@ def plot_split(
     right_amount = right_transactions.sum().amount(in_currency)
     total = left_amount + right_amount
     plt.figure(figsize=(10, 1))
+    plt.xlim([0, total])
     plt.yticks([])
     plt.xticks([0, total / 2, total])
-    plt.bar(
+    plt.barh(
         left=0, height=1, width=left_amount, bottom=0,
         color=left_color
     )
-    plt.bar(
+    plt.barh(
         left=left_amount, height=1, width=right_amount, bottom=0,
         color=right_color
     )
@@ -92,8 +93,8 @@ def plot_months(
 
 def _months_range(data):
     dates = [t.date for t in data]
-    start = min(dates)
     end = datetime.now()
+    start = min(dates) if len(dates) > 0 else end
     start_year = start.year
     start_month = start.month
     while start_year != end.year or start_month != end.month:
