@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from ..money import Money
 from ..exceptions import TransactionParseError
 from ..exceptions import MoneyParseError
@@ -97,7 +99,7 @@ class TagsLexer:
 class TagsParser:
     def run(self, text):
         self.tokens = TagsLexer().run(text)
-        self.tags = {}
+        self.tags = OrderedDict()
         self.parse_tags()
         return self.tags
 
