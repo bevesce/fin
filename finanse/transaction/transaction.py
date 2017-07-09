@@ -30,7 +30,7 @@ class Transaction:
     def __str__(self):
         return '{} {} {}'.format(
             self.date.strftime(DATE_FORMAT),
-            ' '.join(self._str_tag(t) for t in sorted(self.tags)),
+            ' '.join(self._str_tag(t) for t in self.tags),
             self.money
         )
 
