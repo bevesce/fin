@@ -1,7 +1,10 @@
+from datetime import datetime
 from collections import defaultdict
 from collections import Counter
+from collections import OrderedDict
 
 from .transactions_parser import parse_transactions
+from .transaction import Transaction
 from .grouped_transactions import GroupedTransactions
 from ..money import Money
 from ..query import by
@@ -64,3 +67,25 @@ class Transactions:
             transaction_key = key(transaction)
             groups[transaction_key] = groups[transaction_key].append(transaction)
         return GroupedTransactions(dict(groups))
+
+    def merge(self, key=None):
+        if key == None:
+            merged_currency = None
+            merged_date = datetime(1970, 1, 1)
+            merged_tags = OrderedDict()
+            merged_money = Money()
+            for transaction in self:
+                merged_date = max(merged_date, transaction.date)
+                for tag, param in transaction.tags.items():
+                    if tag not in merged_tags:
+                        merged_tags[tag] = param
+                    elif param and merged_tags[tag]:
+                        merged_tags[tag] = ', '.join((merged_tags[tag], param))
+                    else:
+                        merged_tags[tag] = merged_tags[tag] or param
+                merged_money += transaction.money
+            return Transactions([Transaction(merged_date, merged_tags, merged_money)])
+        merged = []
+        for transactions in self.group(key).values():
+            merged += transactions.merge()
+        return Transactions(merged)
