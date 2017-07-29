@@ -41,6 +41,8 @@ def parse_transaction(text):
     def parse_tags(text):
         return TagsParser().run(text)
 
+    if text.startswith('#'):
+        return None, None, None
     date, rest = parse_date_from_prefix(text)
     money, rest = parse_money_from_postfix(rest)
     tags = parse_tags(rest)
