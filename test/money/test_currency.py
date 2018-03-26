@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import unittest
 import os
-from finanse import currency
+from fin import currency
 from datetime import date
 
 

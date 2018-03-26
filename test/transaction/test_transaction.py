@@ -2,10 +2,10 @@
 import unittest
 from datetime import datetime
 
-from finanse import Transaction
-from finanse import TransactionParseError
-from finanse import Money
-from finanse import currency
+from fin import Transaction
+from fin import TransactionParseError
+from fin import Money
+from fin import currency
 
 
 def empty(*tags):
@@ -104,10 +104,10 @@ class TransactionParsingTest(unittest.TestCase):
             "can't parse 're 10,x0zł or 10,x0zł' as money from '2016-01-02 re 10,x0zł'"
         )
 
-    def test_parse_invalid_money(self):
+    def test_parse_minus(self):
         self.assertEqual(
             -Transaction('2016-01-02 re 100zł').money,
-            Money('-10zł')
+            Money('-100zł')
         )
 
 class TransactionConversionTest(unittest.TestCase):

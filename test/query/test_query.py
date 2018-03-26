@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import unittest
 import datetime
-from finanse import query
-from finanse import Transaction
+from fin import query
+from fin import Transaction
 
 
 class QueryTest(unittest.TestCase):

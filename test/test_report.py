@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from finanse import raport
-from finanse import Transactions
-from finanse import Transaction
+from fin import raport
+from fin import Transactions
+from fin import Transaction
 
 t1 = Transactions("""2016-01-01 test1 10zł
 2016-02-01 test1 20zł
