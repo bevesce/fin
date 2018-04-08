@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import unittest
-from finanse import GroupedMoney
-from finanse import Money
+from fin import GroupedMoney
+from fin import Money
 
 
 class GroupedMoneyTest(unittest.TestCase):

@@ -1,11 +1,11 @@
-# finanse
+# fin
 
 ![](icon.png)
 
 Track expenses and transactions in plain text using python 3.
 
 ```
->>> from finanse import Transactions
+>>> from fin import Transactions
 >>> expenses = Transactions("""
 2016-06-30 food 10€
 2016-07-01 spiders 2€
@@ -26,9 +26,9 @@ Track expenses and transactions in plain text using python 3.
 
 ## Installation
 
-At least for now, I don't wan't unecesserly pollute pip. So to install *finanse* you need to manaully download repository and copy `finanse` folder somewhere when python can reach it.
+At least for now, I don't wan't unecesserly pollute pip. So to install *fin* you need to manaully download repository and copy `fin` folder somewhere when python can reach it.
 
-*Finanse* doesn't have any hard dependencies, and one optional, `matplotlib`, required if you want to use reporting with charts. 
+*Finanse* doesn't have any hard dependencies, and one optional, `matplotlib`, required if you want to use reporting with charts.
 
 ## Usage
 
@@ -71,7 +71,7 @@ or using simple query language:
 2016-07-01 spiders 2€
 ```
 
-Full documentation of this language is in the [wiki](https://github.com/bevesce/finanse/wiki#filter-query).
+Full documentation of this language is in the [wiki](https://github.com/bevesce/fin/wiki#filter-query).
 
 ### Group
 
@@ -100,7 +100,7 @@ months = expenses.group('year-month')
 2016-07-03 food(lemons) 6,42 zł
 ```
 
-Full list of the keywords is in the [wiki](https://github.com/bevesce/finanse/wiki#group-keywords).
+Full list of the keywords is in the [wiki](https://github.com/bevesce/fin/wiki#group-keywords).
 
 ### Sum
 
@@ -133,7 +133,7 @@ Money and transactions can be converted to another currency:
 The difference between the two is that standalone amount of money is converted using current conversion rate and transactions are converted using rate from its date. *Finanse* uses data provided by [fixer.io](http://fixer.io). Conversion rates are cached and you can make this cache permanent:
 
 ```
-from finanse import currency
+from fin import currency
 currency.setup_cache(
     'path/to/where/this/should/be/stored/file.json'
 )
@@ -177,8 +177,3 @@ plot_progress(
 ## License
 
 Copyright 2016 Piotr Wilczyński. Licensed under the MIT License.
-
-
----
-
-*finanse* means *finance* in Polish

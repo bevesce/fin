@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import unittest
-from finanse.query.query_parser import QueryLexer
-from finanse.query.query_parser import QueryToken
-from finanse.query.query_parser import QueryParser
-from finanse import QueryParseError
+from fin.query.query_parser import QueryLexer
+from fin.query.query_parser import QueryToken
+from fin.query.query_parser import QueryParser
+from fin import QueryParseError
 
 
 class QueryLexerTest(unittest.TestCase):

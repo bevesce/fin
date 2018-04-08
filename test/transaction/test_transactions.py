@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import unittest
-from finanse import GroupedTransactions
-from finanse import Transactions
-from finanse import Transaction
-from finanse import Money
-from finanse import TransactionParseError
+from fin import GroupedTransactions
+from fin import Transactions
+from fin import Transaction
+from fin import Money
+from fin import TransactionParseError
 
 
 class TransactionsTest(unittest.TestCase):

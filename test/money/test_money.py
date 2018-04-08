@@ -3,9 +3,9 @@ import unittest
 from datetime import datetime
 from collections import defaultdict
 
-from finanse import Money
-from finanse import currency
-from finanse import MoneyParseError
+from fin import Money
+from fin import currency
+from fin import MoneyParseError
 
 
 currency.cache = {'2016-01-01': {'PLN': {'EUR': 0.25}, 'USD': {'EUR': 0.5}}}
