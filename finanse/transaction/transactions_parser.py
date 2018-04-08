@@ -7,6 +7,8 @@ COMMENT = '#'
 def parse_transactions(text):
     def parse_transaction(text, line_number):
         try:
+            if text.startswith('#'):
+                return None
             return Transaction(text)
         except TransactionParseError as e:
             raise TransactionParseError(
