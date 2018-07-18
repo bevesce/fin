@@ -2,7 +2,7 @@
 
 ![](icon.png)
 
-Track expenses and transactions in plain text using python 3.
+Track expenses, transactions or other values in plain text using python 3.
 
 ```
 >>> from fin import Transactions
@@ -26,7 +26,7 @@ Track expenses and transactions in plain text using python 3.
 
 ## Installation
 
-At least for now, I don't wan't unecesserly pollute pip. So to install *fin* you need to manaully download repository and copy `fin` folder somewhere when python can reach it.
+To install *fin* you need to manaully download repository and copy `fin` folder somewhere where python can reach it.
 
 *Finanse* doesn't have any hard dependencies, and one optional, `matplotlib`, required if you want to use reporting with charts.
 
@@ -37,7 +37,7 @@ Each transaction is described by single line:
 ```
 2016-07-28      food(lemons)  ...    ...   shared        1000000€
 ↑               ↑                          ↑             ↑      ↑
-date %Y-%m-%d   tag(with parameter)        another tag   amount currency
+date %Y-%m-%d   tag(with parameter)        another tag   amount currency or unit
 ```
 
 ### Create
@@ -138,6 +138,8 @@ currency.setup_cache(
     'path/to/where/this/should/be/stored/file.json'
 )
 ```
+
+Converting for other units is not supported right now.
 
 ### Report
 
