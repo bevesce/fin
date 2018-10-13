@@ -11,3 +11,4 @@ from .exceptions import ParseError
 from .exceptions import MoneyParseError
 from .exceptions import TransactionParseError
 from .exceptions import QueryParseError
+from .tags_hierarchy import TagsHierarchy

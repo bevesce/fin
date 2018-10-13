@@ -3,12 +3,6 @@ from collections import defaultdict
 from datetime import datetime
 from datetime import timedelta
 
-# try:
-#     from mpltools import style
-#     style.use('ggplot')
-# except:
-#     pass
-
 try:
     import matplotlib.pyplot as plt
     plt.style.use('ggplot')
@@ -26,7 +20,7 @@ def plot_split(
     left_amount = left_transactions.sum().amount(in_currency)
     right_amount = right_transactions.sum().amount(in_currency)
     total = left_amount + right_amount
-    plt.figure(figsize=(10, 1))
+    plt.figure(figsize=(20, 1))
     plt.xlim([0, total])
     plt.yticks([])
     plt.xticks([0, total / 2, total])
@@ -48,7 +42,7 @@ def plot_progress(
 ):
     value = transactions.sum().amount(in_currency)
     goal = goal_transactions.sum().amount(in_currency)
-    plt.figure(figsize=(10, 1))
+    plt.figure(figsize=(20, 1))
     plt.yticks([])
     plt.xticks([0, 1, value, goal])
     plt.bar(
@@ -74,7 +68,7 @@ def plot_months(
     avgs = list(_calculate_moving_yearly_averages(sums))
     xticks = list(range(0, len(months)))
 
-    fig, ax = plt.subplots(figsize=(12, 4))
+    fig, ax = plt.subplots(figsize=(20, 4))
 
     ax.set_xticks(xticks)
     ax.set_ylim(min(min(sums) - 10, 0), max(sums) + 10)
@@ -139,7 +133,7 @@ def plot_days(
     xlabels = [t.date.strftime('%F') for t in transactions]
     values = [transactions.group('date').sum()[k].amount(in_currency) for k in xlabels]
 
-    fig, ax = plt.subplots(figsize=(12, 4))
+    fig, ax = plt.subplots(figsize=(20, 4))
     ax.set_xticks(xticks)
     min_value = min(values) - 2
     max_value = max(values) + 2
